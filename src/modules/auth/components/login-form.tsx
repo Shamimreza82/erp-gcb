@@ -31,10 +31,10 @@ export function LoginForm() {
 
   const accounts = [
     { label: "Super Admin", email: "admin@erp.com" },
-    { label: "CEO", email: "ceo@gcb.gov.bd" },
-    { label: "Manager", email: "manager@gcb.gov.bd" },
-    { label: "Finance", email: "finance@gcb.gov.bd" },
-    { label: "User", email: "user@gcb.gov.bd" },
+    { label: "CEO", email: "ceo.demo@gmail.com" },
+    { label: "Manager", email: "manager.demo@gmail.com" },
+    { label: "Finance", email: "finance.demo@gmail.com" },
+    { label: "User", email: "user.demo@gmail.com" },
   ]
 
   const loginMutation = useMutation({

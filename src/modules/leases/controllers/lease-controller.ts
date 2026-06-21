@@ -11,7 +11,8 @@ export class LeaseController {
     const user = getUserFromRequest(request)
     if (!user) return errorResponse("Unauthorized", 401)
     const dbUser = await prisma.user.findUnique({ where: { id: user.userId }, select: { boardId: true } })
-    let boardId: string | undefined = dbUser?.boardId || undefined
+    if (!dbUser) return errorResponse("User not found. Please login again.", 401)
+    let boardId: string | undefined = dbUser.boardId || undefined
     if (user.role === "SUPER_ADMIN") boardId = undefined
     if (!boardId && user.role !== "SUPER_ADMIN") return errorResponse("No board assigned", 403)
 

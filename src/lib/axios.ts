@@ -33,6 +33,13 @@ api.interceptors.response.use(
     const status = err.response?.status || "NETWORK"
     const message = err.response?.data?.error || err.message || "Unknown error"
     console.error(`[API] ${status} ${url}: ${message}`)
+
+    if (status === 401 && typeof window !== "undefined") {
+      localStorage.removeItem("auth-storage")
+      localStorage.removeItem("token")
+      window.location.href = "/login"
+    }
+
     return Promise.reject(err)
   }
 )

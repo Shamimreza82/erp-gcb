@@ -8,12 +8,12 @@ async function main() {
 
   // ─── Board ───
   const board = await prisma.board.upsert({
-    where: { code: "GCB" },
+    where: { code: "DEMO" },
     update: {},
     create: {
-      name: "Gazipur Cantonment Board",
-      code: "GCB",
-      address: "Gazipur Cantonment, Dhaka, Bangladesh",
+      name: "Demo Cantonment Board",
+      code: "DEMO",
+      address: "Dhaka, Bangladesh",
     },
   })
 
@@ -30,11 +30,11 @@ async function main() {
   })
 
   const ceo = await prisma.user.upsert({
-    where: { email: "ceo@gcb.gov.bd" },
+    where: { email: "ceo.demo@gmail.com" },
     update: {},
     create: {
       boardId: board.id,
-      email: "ceo@gcb.gov.bd",
+      email: "ceo.demo@gmail.com",
       password,
       fullName: "Chief Executive Officer",
       role: UserRole.CEO,
@@ -42,11 +42,11 @@ async function main() {
   })
 
   const manager = await prisma.user.upsert({
-    where: { email: "manager@gcb.gov.bd" },
+    where: { email: "manager.demo@gmail.com" },
     update: {},
     create: {
       boardId: board.id,
-      email: "manager@gcb.gov.bd",
+      email: "manager.demo@gmail.com",
       password,
       fullName: "Property Manager",
       role: UserRole.MANAGER,
@@ -54,11 +54,11 @@ async function main() {
   })
 
   const financeOfficer = await prisma.user.upsert({
-    where: { email: "finance@gcb.gov.bd" },
+    where: { email: "finance.demo@gmail.com" },
     update: {},
     create: {
       boardId: board.id,
-      email: "finance@gcb.gov.bd",
+      email: "finance.demo@gmail.com",
       password,
       fullName: "Finance Officer",
       role: UserRole.FINANCE_OFFICER,
@@ -66,11 +66,11 @@ async function main() {
   })
 
   const tenantUser = await prisma.user.upsert({
-    where: { email: "user@gcb.gov.bd" },
+    where: { email: "user.demo@gmail.com" },
     update: {},
     create: {
       boardId: board.id,
-      email: "user@gcb.gov.bd",
+      email: "user.demo@gmail.com",
       password,
       fullName: "Abdul Karim",
       phone: "01712345678",
@@ -164,47 +164,16 @@ async function main() {
     }
   }
 
-  // ─── Second Board (demo multi-tenant) ───
-  const board2 = await prisma.board.upsert({
-    where: { code: "DCB" },
-    update: {},
-    create: {
-      name: "Dhaka Cantonment Board",
-      code: "DCB",
-      address: "Dhaka Cantonment, Dhaka, Bangladesh",
-    },
-  })
-
-  await prisma.user.upsert({
-    where: { email: "ceo@dcb.gov.bd" },
-    update: {},
-    create: { boardId: board2.id, email: "ceo@dcb.gov.bd", password, fullName: "DCB CEO", role: "CEO" },
-  })
-
-  await prisma.user.upsert({
-    where: { email: "manager@dcb.gov.bd" },
-    update: {},
-    create: { boardId: board2.id, email: "manager@dcb.gov.bd", password, fullName: "DCB Manager", role: "MANAGER" },
-  })
-
-  await prisma.property.create({
-    data: { boardId: board2.id, code: "MKT-001", name: "Kawran Bazar Market", category: "MARKET", address: "Kawran Bazar, Dhaka", status: "ACTIVE", createdBy: superAdmin.id },
-  })
-
   console.log("✅ Seed completed successfully")
   console.log("")
   console.log("── Login Credentials ──")
   console.log("Super Admin:     admin@erp.com / 123456")
   console.log("")
-  console.log("── Board 1: Gazipur Cantonment Board (GCB) ──")
-  console.log("CEO:             ceo@gcb.gov.bd / 123456")
-  console.log("Manager:         manager@gcb.gov.bd / 123456")
-  console.log("Finance:         finance@gcb.gov.bd / 123456")
-  console.log("User:            user@gcb.gov.bd / 123456")
-  console.log("")
-  console.log("── Board 2: Dhaka Cantonment Board (DCB) ──")
-  console.log("CEO:             ceo@dcb.gov.bd / 123456")
-  console.log("Manager:         manager@dcb.gov.bd / 123456")
+  console.log(`── ${board.name} (${board.code}) ──`)
+  console.log("CEO:             ceo.demo@gmail.com / 123456")
+  console.log("Manager:         manager.demo@gmail.com / 123456")
+  console.log("Finance:         finance.demo@gmail.com / 123456")
+  console.log("User:            user.demo@gmail.com / 123456")
 }
 
 main()
