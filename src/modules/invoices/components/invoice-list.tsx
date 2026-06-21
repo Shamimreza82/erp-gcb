@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { DataTable } from "@/components/shared/data-table"
 import { PageHeader } from "@/components/shared/page-header"
+import { StatusFilter, type StatusOption } from "@/components/shared/status-filter"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -17,9 +18,6 @@ import type { ColumnDef } from "@tanstack/react-table"
 import type { Invoice, InvoiceFormData } from "../types"
 import { toast } from "sonner"
 import { api as axios } from "@/lib/axios"
-import { cn } from "@/utils/cn"
-
-type Tab = "all" | "unpaid" | "overdue" | "partial"
 
 export function InvoiceList() {
   const [page, setPage] = useState(1)
@@ -30,12 +28,12 @@ export function InvoiceList() {
   const [batchMonth, setBatchMonth] = useState("")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
-  const [tab, setTab] = useState<Tab>("all")
+  const [statusFilter, setStatusFilter] = useState("all")
   const queryClient = useQueryClient()
 
-  const statusParam = tab === "all" ? undefined : tab.toUpperCase()
+  const statusParam = statusFilter === "all" ? undefined : statusFilter
   const { data, isLoading } = useQuery({
-    queryKey: ["invoices", page, search, tab],
+    queryKey: ["invoices", page, search, statusFilter],
     queryFn: async () => {
       let url = `/api/invoices?page=${page}&search=${search}`
       if (statusParam) url += `&status=${statusParam}`
@@ -75,11 +73,13 @@ export function InvoiceList() {
     onError: (err: any) => toast.error(err.response?.data?.error || "Failed to apply late fees"),
   })
 
-  const tabs = [
-    { key: "all" as Tab, label: "All" },
-    { key: "unpaid" as Tab, label: "Unpaid" },
-    { key: "partial" as Tab, label: "Partial" },
-    { key: "overdue" as Tab, label: "Overdue" },
+  const statusOptions: StatusOption[] = [
+    { label: "All", value: "all" },
+    { label: "Draft", value: "DRAFT" },
+    { label: "Unpaid", value: "UNPAID" },
+    { label: "Partial", value: "PARTIAL" },
+    { label: "Paid", value: "PAID" },
+    { label: "Overdue", value: "OVERDUE" },
   ]
 
   const variantMap: Record<string, "default" | "secondary" | "success" | "warning" | "destructive"> = {
@@ -132,7 +132,7 @@ export function InvoiceList() {
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline" onClick={() => lateFeeMutation.mutate()} disabled={lateFeeMutation.isPending}>
+          <Button variant="outline" onClick={() => lateFeeMutation.mutate(undefined as any)} disabled={lateFeeMutation.isPending}>
             <AlertCircle className="h-4 w-4" /> Apply Late Fees
           </Button>
 
@@ -146,23 +146,22 @@ export function InvoiceList() {
         </div>
       </PageHeader>
 
-      {/* Tabs */}
-      <div className="mb-4 flex gap-1 rounded-lg border p-1">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => { setTab(t.key); setPage(1) }}
-            className={cn(
-              "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-              tab === t.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <DataTable columns={columns} data={data?.data || []} meta={data?.meta} onPageChange={setPage} onSearchChange={handleSearch} loading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={data?.data || []}
+        meta={data?.meta}
+        onPageChange={setPage}
+        onSearchChange={handleSearch}
+        loading={isLoading}
+        filters={
+          <StatusFilter
+            options={statusOptions}
+            value={statusFilter}
+            onChange={(v) => { setStatusFilter(v); setPage(1) }}
+            variant="dropdown"
+          />
+        }
+      />
       <DeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={() => selectedInvoice && deleteMutation.mutate(selectedInvoice.id)} loading={deleteMutation.isPending} />
     </div>
   )

@@ -1,11 +1,17 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'MANAGER', 'USER');
+CREATE TYPE "UserRole" AS ENUM ('SUPER_ADMIN', 'CEO', 'MANAGER', 'FINANCE_OFFICER', 'USER');
+
+-- CreateEnum
+CREATE TYPE "PropertyCategory" AS ENUM ('SHOP', 'LAND', 'HOUSE', 'FLAT', 'MARKET', 'WAREHOUSE', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "PropertyStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'UNDER_MAINTENANCE');
 
 -- CreateEnum
 CREATE TYPE "UnitStatus" AS ENUM ('VACANT', 'OCCUPIED', 'RESERVED');
+
+-- CreateEnum
+CREATE TYPE "LeaseStatus" AS ENUM ('PENDING_CEO_APPROVAL', 'ACTIVE', 'TERMINATED', 'EXPIRED', 'REJECTED');
 
 -- CreateEnum
 CREATE TYPE "InvoiceStatus" AS ENUM ('DRAFT', 'UNPAID', 'PARTIAL', 'PAID', 'OVERDUE');
@@ -17,16 +23,43 @@ CREATE TYPE "PaymentMethod" AS ENUM ('CASH', 'BANK_TRANSFER', 'MOBILE_BANKING');
 CREATE TYPE "ExpenseCategory" AS ENUM ('MAINTENANCE', 'UTILITY', 'CLEANING', 'SECURITY', 'MISCELLANEOUS');
 
 -- CreateEnum
-CREATE TYPE "LeaseStatus" AS ENUM ('ACTIVE', 'TERMINATED', 'EXPIRED');
+CREATE TYPE "MaintenanceStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+
+-- CreateTable
+CREATE TABLE "boards" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "address" TEXT,
+    "phone" TEXT,
+    "email" TEXT,
+    "taxId" TEXT,
+    "logo" TEXT,
+    "headerText" TEXT,
+    "footerText" TEXT,
+    "signature" TEXT,
+    "signatureName" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" UUID,
+    "updatedBy" UUID,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "boards_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
+    "boardId" UUID,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "fullName" TEXT NOT NULL,
     "phone" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
+    "nidNumber" TEXT,
+    "address" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -40,8 +73,10 @@ CREATE TABLE "users" (
 -- CreateTable
 CREATE TABLE "properties" (
     "id" UUID NOT NULL,
+    "boardId" UUID NOT NULL,
     "code" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "category" "PropertyCategory" NOT NULL DEFAULT 'SHOP',
     "address" TEXT,
     "description" TEXT,
     "status" "PropertyStatus" NOT NULL DEFAULT 'ACTIVE',
@@ -74,26 +109,6 @@ CREATE TABLE "units" (
 );
 
 -- CreateTable
-CREATE TABLE "tenants" (
-    "id" UUID NOT NULL,
-    "fullName" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "email" TEXT,
-    "nidNumber" TEXT,
-    "address" TEXT,
-    "emergencyContact" TEXT,
-    "photo" TEXT,
-    "documents" JSONB,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "createdBy" UUID,
-    "updatedBy" UUID,
-    "deletedAt" TIMESTAMP(3),
-
-    CONSTRAINT "tenants_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "leases" (
     "id" UUID NOT NULL,
     "leaseNumber" TEXT NOT NULL,
@@ -103,7 +118,9 @@ CREATE TABLE "leases" (
     "endDate" TIMESTAMP(3) NOT NULL,
     "monthlyRent" DOUBLE PRECISION NOT NULL,
     "securityDeposit" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "status" "LeaseStatus" NOT NULL DEFAULT 'ACTIVE',
+    "status" "LeaseStatus" NOT NULL DEFAULT 'PENDING_CEO_APPROVAL',
+    "approvedBy" UUID,
+    "approvedAt" TIMESTAMP(3),
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -127,6 +144,7 @@ CREATE TABLE "invoices" (
     "dueDate" TIMESTAMP(3) NOT NULL,
     "status" "InvoiceStatus" NOT NULL DEFAULT 'UNPAID',
     "paidAmount" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "lateFee" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -145,6 +163,7 @@ CREATE TABLE "payments" (
     "date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "method" "PaymentMethod" NOT NULL,
     "referenceNumber" TEXT,
+    "receiptUrl" TEXT,
     "notes" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -158,6 +177,7 @@ CREATE TABLE "payments" (
 -- CreateTable
 CREATE TABLE "expenses" (
     "id" UUID NOT NULL,
+    "boardId" UUID NOT NULL,
     "title" TEXT NOT NULL,
     "category" "ExpenseCategory" NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
@@ -170,6 +190,40 @@ CREATE TABLE "expenses" (
     "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "expenses_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "maintenance_requests" (
+    "id" UUID NOT NULL,
+    "boardId" UUID NOT NULL,
+    "tenantId" UUID NOT NULL,
+    "unitId" UUID,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "status" "MaintenanceStatus" NOT NULL DEFAULT 'PENDING',
+    "assignedTo" UUID,
+    "resolvedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" UUID,
+    "updatedBy" UUID,
+    "deletedAt" TIMESTAMP(3),
+
+    CONSTRAINT "maintenance_requests_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "notices" (
+    "id" UUID NOT NULL,
+    "boardId" UUID NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "sentTo" UUID,
+    "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdBy" UUID,
+
+    CONSTRAINT "notices_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -201,16 +255,31 @@ CREATE TABLE "activity_logs" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "boards_code_key" ON "boards"("code");
+
+-- CreateIndex
+CREATE INDEX "boards_deletedAt_idx" ON "boards"("deletedAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "properties_code_key" ON "properties"("code");
+CREATE INDEX "users_boardId_idx" ON "users"("boardId");
+
+-- CreateIndex
+CREATE INDEX "users_deletedAt_idx" ON "users"("deletedAt");
 
 -- CreateIndex
 CREATE INDEX "properties_status_idx" ON "properties"("status");
 
 -- CreateIndex
+CREATE INDEX "properties_category_idx" ON "properties"("category");
+
+-- CreateIndex
 CREATE INDEX "properties_deletedAt_idx" ON "properties"("deletedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "properties_boardId_code_key" ON "properties"("boardId", "code");
 
 -- CreateIndex
 CREATE INDEX "units_status_idx" ON "units"("status");
@@ -220,12 +289,6 @@ CREATE INDEX "units_deletedAt_idx" ON "units"("deletedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "units_propertyId_unitNumber_key" ON "units"("propertyId", "unitNumber");
-
--- CreateIndex
-CREATE INDEX "tenants_phone_idx" ON "tenants"("phone");
-
--- CreateIndex
-CREATE INDEX "tenants_deletedAt_idx" ON "tenants"("deletedAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "leases_leaseNumber_key" ON "leases"("leaseNumber");
@@ -270,6 +333,9 @@ CREATE INDEX "payments_date_idx" ON "payments"("date");
 CREATE INDEX "payments_deletedAt_idx" ON "payments"("deletedAt");
 
 -- CreateIndex
+CREATE INDEX "expenses_boardId_idx" ON "expenses"("boardId");
+
+-- CreateIndex
 CREATE INDEX "expenses_category_idx" ON "expenses"("category");
 
 -- CreateIndex
@@ -277,6 +343,27 @@ CREATE INDEX "expenses_date_idx" ON "expenses"("date");
 
 -- CreateIndex
 CREATE INDEX "expenses_deletedAt_idx" ON "expenses"("deletedAt");
+
+-- CreateIndex
+CREATE INDEX "maintenance_requests_boardId_idx" ON "maintenance_requests"("boardId");
+
+-- CreateIndex
+CREATE INDEX "maintenance_requests_tenantId_idx" ON "maintenance_requests"("tenantId");
+
+-- CreateIndex
+CREATE INDEX "maintenance_requests_status_idx" ON "maintenance_requests"("status");
+
+-- CreateIndex
+CREATE INDEX "maintenance_requests_deletedAt_idx" ON "maintenance_requests"("deletedAt");
+
+-- CreateIndex
+CREATE INDEX "notices_boardId_idx" ON "notices"("boardId");
+
+-- CreateIndex
+CREATE INDEX "notices_sentTo_idx" ON "notices"("sentTo");
+
+-- CreateIndex
+CREATE INDEX "notices_createdAt_idx" ON "notices"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "notifications_userId_isRead_idx" ON "notifications"("userId", "isRead");
@@ -294,6 +381,12 @@ CREATE INDEX "activity_logs_entity_entityId_idx" ON "activity_logs"("entity", "e
 CREATE INDEX "activity_logs_createdAt_idx" ON "activity_logs"("createdAt");
 
 -- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "boards"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "properties" ADD CONSTRAINT "properties_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "boards"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "properties" ADD CONSTRAINT "properties_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -303,19 +396,22 @@ ALTER TABLE "units" ADD CONSTRAINT "units_propertyId_fkey" FOREIGN KEY ("propert
 ALTER TABLE "units" ADD CONSTRAINT "units_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tenants" ADD CONSTRAINT "tenants_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "leases" ADD CONSTRAINT "leases_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "tenants"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "leases" ADD CONSTRAINT "leases_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "leases" ADD CONSTRAINT "leases_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "units"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "leases" ADD CONSTRAINT "leases_approvedBy_fkey" FOREIGN KEY ("approvedBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "leases" ADD CONSTRAINT "leases_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "invoices" ADD CONSTRAINT "invoices_leaseId_fkey" FOREIGN KEY ("leaseId") REFERENCES "leases"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "invoices" ADD CONSTRAINT "invoices_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "invoices" ADD CONSTRAINT "invoices_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -330,13 +426,23 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_createdBy_fkey" FOREIGN KEY ("cr
 ALTER TABLE "expenses" ADD CONSTRAINT "expenses_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notifications" ADD CONSTRAINT "notifications_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "units"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "maintenance_requests" ADD CONSTRAINT "maintenance_requests_assignedTo_fkey" FOREIGN KEY ("assignedTo") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notices" ADD CONSTRAINT "notices_sentTo_fkey" FOREIGN KEY ("sentTo") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notifications" ADD CONSTRAINT "notifications_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+

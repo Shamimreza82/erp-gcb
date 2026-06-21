@@ -28,6 +28,7 @@ interface DataTableProps<TData, TValue> {
   onPageChange?: (page: number) => void
   onSearchChange?: (value: string) => void
   loading?: boolean
+  filters?: React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
@@ -37,10 +38,11 @@ export function DataTable<TData, TValue>({
   onPageChange,
   onSearchChange,
   loading,
+  filters,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [searchInput, setSearchInput] = useState("")
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const onSearchRef = useRef(onSearchChange)
   onSearchRef.current = onSearchChange
 
@@ -83,22 +85,25 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="h-9 pl-9 pr-9 max-w-xs"
-        />
-        {searchInput && (
-          <button
-            onClick={() => setSearchInput("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+      <div className="mb-4 flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="h-9 pl-9 pr-9 max-w-xs"
+          />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {filters}
       </div>
 
       <div className="overflow-x-auto rounded-md border">

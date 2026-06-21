@@ -76,8 +76,9 @@ export function LeaseList() {
     { accessorKey: "startDate", header: "Start", cell: ({ row }) => formatDate(row.getValue("startDate")) },
     { accessorKey: "endDate", header: "End", cell: ({ row }) => formatDate(row.getValue("endDate")) },
     { accessorKey: "status", header: "Status", cell: ({ row }) => {
+      const statusLabels: Record<string, string> = { PENDING_CEO_APPROVAL: "Pending CEO Approval", ACTIVE: "Active", TERMINATED: "Terminated", EXPIRED: "Expired", REJECTED: "Rejected" }
       const s = row.original.status
-      const label = s === "PENDING_CEO_APPROVAL" ? "Pending CEO Approval" : s === "ACTIVE" ? "Active" : s === "TERMINATED" ? "Terminated" : s === "EXPIRED" ? "Expired" : s === "REJECTED" ? "Rejected" : s.replace(/_/g, " ")
+      const label = statusLabels[s] ?? s
       return <Badge variant={variantMap[s] || "secondary"}>{label}</Badge>
     } },
     {

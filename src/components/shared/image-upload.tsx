@@ -34,12 +34,13 @@ export function ImageUpload({ value, onChange, folder = "erp-gcb" }: ImageUpload
   }, [])
 
   const openWidget = useCallback(() => {
-    if (!window.cloudinary) {
+    const win = window as unknown as Record<string, any>
+    if (!win.cloudinary) {
       toast.error("Upload widget is still loading. Please try again.")
       return
     }
 
-    const widget = window.cloudinary.createUploadWidget(
+    const widget = win.cloudinary.createUploadWidget(
       {
         cloudName: CLOUD_NAME,
         apiKey: API_KEY,

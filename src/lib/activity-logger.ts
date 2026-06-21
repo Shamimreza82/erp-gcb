@@ -16,7 +16,7 @@ export async function logActivity(params: LogParams) {
         action: params.action,
         entity: params.entity,
         entityId: params.entityId,
-        details: params.details ?? {},
+        details: (params.details ?? {}) as any,
         createdBy: params.userId || "system",
       },
     })
