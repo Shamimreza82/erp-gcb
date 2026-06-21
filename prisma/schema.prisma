@@ -1,0 +1,379 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  CEO
+  MANAGER
+  FINANCE_OFFICER
+  TENANT
+}
+
+enum PropertyCategory {
+  SHOP
+  LAND
+  HOUSE
+  FLAT
+  MARKET
+  WAREHOUSE
+  OTHER
+}
+
+enum PropertyStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_MAINTENANCE
+}
+
+enum UnitStatus {
+  VACANT
+  OCCUPIED
+  RESERVED
+}
+
+enum LeaseStatus {
+  PENDING_CEO_APPROVAL
+  ACTIVE
+  TERMINATED
+  EXPIRED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  MOBILE_BANKING
+}
+
+enum ExpenseCategory {
+  MAINTENANCE
+  UTILITY
+  CLEANING
+  SECURITY
+  MISCELLANEOUS
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Board {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  code      String   @unique
+  address   String?
+  logo      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?  @db.Uuid
+  updatedBy String?  @db.Uuid
+  deletedAt DateTime?
+
+  users      User[]
+  properties Property[]
+
+  @@index([deletedAt])
+  @@map("boards")
+}
+
+model User {
+  id         String   @id @default(uuid()) @db.Uuid
+  boardId    String?  @db.Uuid
+  email      String   @unique
+  password   String
+  fullName   String
+  phone      String?
+  role       UserRole @default(TENANT)
+  nidNumber  String?
+  address    String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?  @db.Uuid
+  updatedBy  String?  @db.Uuid
+  deletedAt  DateTime?
+
+  board      Board?   @relation(fields: [boardId], references: [id])
+  createdProperties Property[] @relation("PropertyCreatedBy")
+  createdUnits      Unit[]     @relation("UnitCreatedBy")
+  leases           Lease[]    @relation("LeaseTenant")
+  approvedLeases   Lease[]    @relation("LeaseApprovedBy")
+  createdLeases    Lease[]    @relation("LeaseCreatedBy")
+  invoices         Invoice[]  @relation("InvoiceTenant")
+  createdInvoices  Invoice[]  @relation("InvoiceCreatedBy")
+  payments         Payment[]  @relation("PaymentCreatedBy")
+  expenses         Expense[]  @relation("ExpenseCreatedBy")
+  notices          Notice[]
+  maintenanceRequests MaintenanceRequest[] @relation("MaintenanceTenant")
+  assignedMaintenance   MaintenanceRequest[] @relation("AssignedMaintenance")
+  notifications    Notification[]
+  activityLogs     ActivityLog[]
+  createdActivityLogs ActivityLog[] @relation("CreatedActivityLogs")
+
+  @@index([boardId])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Property {
+  id          String           @id @default(uuid()) @db.Uuid
+  boardId     String           @db.Uuid
+  code        String
+  name        String
+  category    PropertyCategory @default(SHOP)
+  address     String?
+  description String?
+  status      PropertyStatus   @default(ACTIVE)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  createdBy   String?          @db.Uuid
+  updatedBy   String?          @db.Uuid
+  deletedAt   DateTime?
+
+  board         Board  @relation(fields: [boardId], references: [id])
+  createdByUser User?  @relation("PropertyCreatedBy", fields: [createdBy], references: [id])
+  units         Unit[]
+
+  @@unique([boardId, code])
+  @@index([status])
+  @@index([category])
+  @@index([deletedAt])
+  @@map("properties")
+}
+
+model Unit {
+  id          String     @id @default(uuid()) @db.Uuid
+  propertyId  String     @db.Uuid
+  unitNumber  String
+  floor       String?
+  unitType    String?
+  monthlyRent Float
+  size        Float?
+  status      UnitStatus @default(VACANT)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdBy   String?    @db.Uuid
+  updatedBy   String?    @db.Uuid
+  deletedAt   DateTime?
+
+  property     Property @relation(fields: [propertyId], references: [id])
+  createdByUser User?   @relation("UnitCreatedBy", fields: [createdBy], references: [id])
+  leases       Lease[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@unique([propertyId, unitNumber])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("units")
+}
+
+model Lease {
+  id              String      @id @default(uuid()) @db.Uuid
+  leaseNumber     String      @unique
+  tenantId        String      @db.Uuid
+  unitId          String      @db.Uuid
+  startDate       DateTime
+  endDate         DateTime
+  monthlyRent     Float
+  securityDeposit Float       @default(0)
+  status          LeaseStatus @default(PENDING_CEO_APPROVAL)
+  approvedBy      String?     @db.Uuid
+  approvedAt      DateTime?
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdBy       String?     @db.Uuid
+  updatedBy       String?     @db.Uuid
+  deletedAt       DateTime?
+
+  tenant         User    @relation("LeaseTenant", fields: [tenantId], references: [id])
+  unit           Unit    @relation(fields: [unitId], references: [id])
+  approvedByUser User?   @relation("LeaseApprovedBy", fields: [approvedBy], references: [id])
+  createdByUser  User?   @relation("LeaseCreatedBy", fields: [createdBy], references: [id])
+  invoices       Invoice[]
+
+  @@index([status])
+  @@index([tenantId])
+  @@index([unitId])
+  @@index([deletedAt])
+  @@map("leases")
+}
+
+model Invoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  invoiceNumber  String        @unique
+  tenantId       String        @db.Uuid
+  leaseId        String        @db.Uuid
+  rentAmount     Float
+  utilityCharges Float         @default(0)
+  serviceCharges Float         @default(0)
+  totalAmount    Float
+  dueDate        DateTime
+  status         InvoiceStatus @default(UNPAID)
+  paidAmount     Float         @default(0)
+  lateFee        Float         @default(0)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdBy      String?       @db.Uuid
+  updatedBy      String?       @db.Uuid
+  deletedAt      DateTime?
+
+  lease         Lease   @relation(fields: [leaseId], references: [id])
+  tenant        User    @relation("InvoiceTenant", fields: [tenantId], references: [id])
+  createdByUser User?   @relation("InvoiceCreatedBy", fields: [createdBy], references: [id])
+  payments      Payment[]
+
+  @@index([status])
+  @@index([dueDate])
+  @@index([tenantId])
+  @@index([leaseId])
+  @@index([deletedAt])
+  @@map("invoices")
+}
+
+model Payment {
+  id              String        @id @default(uuid()) @db.Uuid
+  invoiceId       String        @db.Uuid
+  amount          Float
+  date            DateTime      @default(now())
+  method          PaymentMethod
+  referenceNumber String?
+  receiptUrl      String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  createdBy       String?       @db.Uuid
+  updatedBy       String?       @db.Uuid
+  deletedAt       DateTime?
+
+  invoice      Invoice   @relation(fields: [invoiceId], references: [id])
+  createdByUser User?    @relation("PaymentCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([invoiceId])
+  @@index([date])
+  @@index([deletedAt])
+  @@map("payments")
+}
+
+model Expense {
+  id         String          @id @default(uuid()) @db.Uuid
+  boardId    String          @db.Uuid
+  title      String
+  category   ExpenseCategory
+  amount     Float
+  date       DateTime        @default(now())
+  notes      String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  createdBy  String?         @db.Uuid
+  updatedBy  String?         @db.Uuid
+  deletedAt  DateTime?
+
+  createdByUser User? @relation("ExpenseCreatedBy", fields: [createdBy], references: [id])
+
+  @@index([boardId])
+  @@index([category])
+  @@index([date])
+  @@index([deletedAt])
+  @@map("expenses")
+}
+
+model MaintenanceRequest {
+  id          String            @id @default(uuid()) @db.Uuid
+  boardId     String            @db.Uuid
+  tenantId    String            @db.Uuid
+  unitId      String?           @db.Uuid
+  title       String
+  description String
+  status      MaintenanceStatus @default(PENDING)
+  assignedTo  String?           @db.Uuid
+  resolvedAt  DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  createdBy   String?           @db.Uuid
+  updatedBy   String?           @db.Uuid
+  deletedAt   DateTime?
+
+  tenant       User   @relation("MaintenanceTenant", fields: [tenantId], references: [id])
+  unit         Unit?  @relation(fields: [unitId], references: [id])
+  assignedUser User?  @relation("AssignedMaintenance", fields: [assignedTo], references: [id])
+
+  @@index([boardId])
+  @@index([tenantId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("maintenance_requests")
+}
+
+model Notice {
+  id        String   @id @default(uuid()) @db.Uuid
+  boardId   String   @db.Uuid
+  title     String
+  content   String
+  sentTo    String?  @db.Uuid
+  sentAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+  createdBy String?  @db.Uuid
+
+  sentToUser User?  @relation(fields: [sentTo], references: [id])
+
+  @@index([boardId])
+  @@index([sentTo])
+  @@index([createdAt])
+  @@map("notices")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  createdBy String?  @db.Uuid
+
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  createdAt DateTime @default(now())
+  createdBy String?  @db.Uuid
+
+  user      User   @relation(fields: [userId], references: [id], name: "CreatedActivityLogs")
+  createdByUser User? @relation(fields: [createdBy], references: [id])
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}

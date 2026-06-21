@@ -1,0 +1,49 @@
+import { prisma } from "@/lib/prisma"
+import type { PropertyFormData } from "../types"
+
+export class PropertyService {
+  static async findAll(params: { boardId: string; skip?: number; take?: number; search?: string }) {
+    const where: any = { boardId: params.boardId, deletedAt: null }
+    if (params.search) {
+      where.OR = [
+        { code: { contains: params.search, mode: "insensitive" } },
+        { name: { contains: params.search, mode: "insensitive" } },
+      ]
+    }
+    const [data, total] = await Promise.all([
+      prisma.property.findMany({
+        where,
+        skip: params.skip,
+        take: params.take,
+        orderBy: { createdAt: "desc" },
+        include: { _count: { select: { units: true } } },
+      }),
+      prisma.property.count({ where }),
+    ])
+    return { data, total }
+  }
+
+  static async findById(id: string) {
+    return prisma.property.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        units: { where: { deletedAt: null }, orderBy: { unitNumber: "asc" } },
+        _count: { select: { units: true } },
+      },
+    })
+  }
+
+  static async create(data: PropertyFormData & { boardId: string }, userId: string) {
+    return prisma.property.create({ data: { ...data, createdBy: userId } })
+  }
+
+  static async update(id: string, data: PropertyFormData, userId: string) {
+    return prisma.property.update({ where: { id }, data: { ...data, updatedBy: userId } })
+  }
+
+  static async delete(id: string) {
+    const units = await prisma.unit.count({ where: { propertyId: id, deletedAt: null } })
+    if (units > 0) throw new Error("Cannot delete property with existing units")
+    return prisma.property.update({ where: { id }, data: { deletedAt: new Date() } })
+  }
+}
