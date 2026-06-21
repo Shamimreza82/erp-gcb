@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, DoorOpen, Calendar, DollarSign, FileText } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Building2, DoorOpen, Calendar, DollarSign, FileText, MapPin, Ruler } from "lucide-react"
 import { formatDate, formatCurrency } from "@/utils/format"
 import { api as axios } from "@/lib/axios"
 
@@ -13,7 +14,7 @@ export function MyProperty() {
     queryFn: async () => { const r = await axios.get("/api/my/property"); return r.data.data },
   })
 
-  if (isLoading) return <div className="text-sm text-muted-foreground">Loading...</div>
+  if (isLoading) return <div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>
 
   if (!data) {
     return (
@@ -32,57 +33,103 @@ export function MyProperty() {
         <Badge variant="success">Active</Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              Property
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span className="font-medium">{data.unit?.property?.name}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Code</span><span>{data.unit?.property?.code}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Category</span><Badge variant="outline">{data.unit?.property?.category}</Badge></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Address</span><span>{data.unit?.property?.address || "-"}</span></div>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader><CardTitle>Property & Lease Details</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Category</TableHead>
+                <TableHead>Detail</TableHead>
+                <TableHead>Value</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell rowSpan={4} className="align-top font-medium">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-primary" />
+                    Property
+                  </div>
+                </TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell className="font-medium">{data.unit?.property?.name}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Code</TableCell>
+                <TableCell>{data.unit?.property?.code}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Category</TableCell>
+                <TableCell><Badge variant="outline">{data.unit?.property?.category}</Badge></TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell><div className="flex items-center gap-1"><MapPin className="h-3 w-3" /> Address</div></TableCell>
+                <TableCell>{data.unit?.property?.address || "-"}</TableCell>
+              </TableRow>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DoorOpen className="h-5 w-5 text-primary" />
-              Unit
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Unit</span><span className="font-medium">{data.unit?.unitNumber}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Floor</span><span>{data.unit?.floor || "-"}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span>{data.unit?.unitType || "-"}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Size</span><span>{data.unit?.size ? `${data.unit.size} sqft` : "-"}</span></div>
-          </CardContent>
-        </Card>
+              <TableRow>
+                <TableCell rowSpan={4} className="align-top font-medium">
+                  <div className="flex items-center gap-2">
+                    <DoorOpen className="h-4 w-4 text-primary" />
+                    Unit
+                  </div>
+                </TableCell>
+                <TableCell>Unit Number</TableCell>
+                <TableCell className="font-medium">{data.unit?.unitNumber}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Floor</TableCell>
+                <TableCell>{data.unit?.floor || "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Type</TableCell>
+                <TableCell>{data.unit?.unitType || "-"}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell><div className="flex items-center gap-1"><Ruler className="h-3 w-3" /> Size</div></TableCell>
+                <TableCell>{data.unit?.size ? `${data.unit.size} sqft` : "-"}</TableCell>
+              </TableRow>
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Lease Agreement
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex justify-between"><span className="text-muted-foreground">Lease #</span><span className="font-medium">{data.leaseNumber}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge variant="success">Active</Badge></div>
-              <div className="flex justify-between"><span className="text-muted-foreground"><Calendar className="mr-1 inline h-3 w-3" />Start</span><span>{formatDate(data.startDate)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground"><Calendar className="mr-1 inline h-3 w-3" />End</span><span>{formatDate(data.endDate)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground"><DollarSign className="mr-1 inline h-3 w-3" />Monthly Rent</span><span className="font-semibold text-primary">{formatCurrency(data.monthlyRent)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Security Deposit</span><span>{formatCurrency(data.securityDeposit)}</span></div>
+              <TableRow>
+                <TableCell rowSpan={6} className="align-top font-medium">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    Lease
+                  </div>
+                </TableCell>
+                <TableCell>Lease Number</TableCell>
+                <TableCell className="font-medium">{data.leaseNumber}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Status</TableCell>
+                <TableCell><Badge variant="success">Active</Badge></TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell><div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Start Date</div></TableCell>
+                <TableCell>{formatDate(data.startDate)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell><div className="flex items-center gap-1"><Calendar className="h-3 w-3" /> End Date</div></TableCell>
+                <TableCell>{formatDate(data.endDate)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell><div className="flex items-center gap-1"><DollarSign className="h-3 w-3" /> Monthly Rent</div></TableCell>
+                <TableCell className="font-semibold text-primary">{formatCurrency(data.monthlyRent)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Security Deposit</TableCell>
+                <TableCell>{formatCurrency(data.securityDeposit)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          {data.notes && (
+            <div className="border-t px-6 py-3 text-sm text-muted-foreground">
+              <span className="font-medium">Notes:</span> {data.notes}
             </div>
-            {data.notes && <p className="mt-2 text-muted-foreground">Notes: {data.notes}</p>}
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -23,12 +23,15 @@ export function PaymentList() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(null)
+  const [currentMonth, setCurrentMonth] = useState(false)
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ["payments", page, search],
+    queryKey: ["payments", page, search, currentMonth],
     queryFn: async () => {
-      const res = await axios.get(`/api/payments?page=${page}&search=${search}`)
+      let url = `/api/payments?page=${page}&search=${search}`
+      if (currentMonth) url += "&currentMonth=true"
+      const res = await axios.get(url)
       return res.data
     },
   })
@@ -114,6 +117,10 @@ export function PaymentList() {
           </DialogContent>
         </Dialog>
       </PageHeader>
+      <div className="mb-4 flex gap-1 rounded-lg border p-1">
+        <button onClick={() => { setCurrentMonth(false); setPage(1) }} className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${!currentMonth ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>All</button>
+        <button onClick={() => { setCurrentMonth(true); setPage(1) }} className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${currentMonth ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>This Month</button>
+      </div>
       <DataTable columns={columns} data={data?.data || []} meta={data?.meta} onPageChange={setPage} onSearchChange={handleSearch} loading={isLoading} />
       <DeleteDialog
         open={deleteDialogOpen}

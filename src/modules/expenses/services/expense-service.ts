@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma"
 import type { ExpenseFormData } from "../types"
 
 export class ExpenseService {
-  static async findAll(params: { boardId: string; skip?: number; take?: number; search?: string }) {
-    const where: any = { deletedAt: null, boardId: params.boardId }
+  static async findAll(params: { boardId?: string; skip?: number; take?: number; search?: string }) {
+    const where: any = { deletedAt: null }
+    if (params.boardId) where.boardId = params.boardId
     if (params.search) {
       where.OR = [
         { title: { contains: params.search, mode: "insensitive" } },

@@ -1,10 +1,16 @@
 import { prisma } from "@/lib/prisma"
+import { startOfMonth, endOfMonth } from "date-fns"
 import type { PaymentFormData } from "../types"
 
 export class PaymentService {
-  static async findAll(params: { boardId: string; skip?: number; take?: number; search?: string; invoiceId?: string }) {
-    const where: any = { deletedAt: null, invoice: { lease: { unit: { property: { boardId: params.boardId } } } } }
+  static async findAll(params: { boardId?: string; skip?: number; take?: number; search?: string; invoiceId?: string; currentMonth?: boolean }) {
+    const where: any = { deletedAt: null }
+    if (params.boardId) where.invoice = { lease: { unit: { property: { boardId: params.boardId } } } }
     if (params.invoiceId) where.invoiceId = params.invoiceId
+    if (params.currentMonth) {
+      const now = new Date()
+      where.date = { gte: startOfMonth(now), lte: endOfMonth(now) }
+    }
     if (params.search) {
       where.invoice = {
         invoiceNumber: { contains: params.search, mode: "insensitive" },

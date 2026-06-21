@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DataTable } from "@/components/shared/data-table"
 import { PageHeader } from "@/components/shared/page-header"
 import { Badge } from "@/components/ui/badge"
-import { Phone, Mail } from "lucide-react"
+import { Phone, Mail, Building2 } from "lucide-react"
 import { formatDate } from "@/utils/format"
 import type { ColumnDef } from "@tanstack/react-table"
 import { api as axios } from "@/lib/axios"
@@ -18,6 +18,7 @@ interface UserRow {
   role: string
   isActive: boolean
   createdAt: string
+  board?: { name: string; code: string } | null
 }
 
 export function UserList() {
@@ -38,11 +39,18 @@ export function UserList() {
     CEO: "default",
     MANAGER: "secondary",
     FINANCE_OFFICER: "warning",
-    TENANT: "success",
+    USER: "success",
   }
 
   const columns: ColumnDef<UserRow>[] = [
     { accessorKey: "fullName", header: "Name" },
+    {
+      accessorKey: "board",
+      header: "Board",
+      cell: ({ row }) => row.original.board ? (
+        <span className="flex items-center gap-1 text-sm"><Building2 className="h-3 w-3 text-muted-foreground" />{row.original.board.name}</span>
+      ) : <span className="text-muted-foreground">—</span>,
+    },
     {
       accessorKey: "email",
       header: "Email",
@@ -68,7 +76,7 @@ export function UserList() {
 
   return (
     <div>
-      <PageHeader title="Users & Tenants" description="All users of this board" />
+      <PageHeader title="Users" description="All users of this board" />
       <DataTable columns={columns} data={data?.data || []} meta={data?.meta} onPageChange={setPage} onSearchChange={handleSearch} loading={isLoading} />
     </div>
   )

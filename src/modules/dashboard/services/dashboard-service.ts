@@ -13,7 +13,7 @@ export class DashboardService {
       prisma.unit.count({ where: { deletedAt: null, property: { boardId } } }),
       prisma.unit.count({ where: { status: "OCCUPIED", deletedAt: null, property: { boardId } } }),
       prisma.unit.count({ where: { status: "VACANT", deletedAt: null, property: { boardId } } }),
-      prisma.user.count({ where: { boardId, role: "TENANT", deletedAt: null } }),
+      prisma.user.count({ where: { boardId, role: "USER", deletedAt: null } }),
       prisma.lease.count({ where: { status: "ACTIVE", deletedAt: null, unit: { property: { boardId } } } }),
       prisma.invoice.findMany({ where: { deletedAt: null, createdAt: { gte: monthStart, lte: monthEnd }, lease: { unit: { property: { boardId } } } } }),
       prisma.payment.findMany({ where: { deletedAt: null, date: { gte: monthStart, lte: monthEnd }, invoice: { lease: { unit: { property: { boardId } } } } } }),

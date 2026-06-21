@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth"
+import { UserRole } from "@prisma/client"
 
 export class RegisterService {
   static async register(data: {
@@ -7,6 +8,7 @@ export class RegisterService {
     email: string
     phone: string
     password: string
+    boardId: string
     nidNumber?: string
     address?: string
   }) {
@@ -25,7 +27,8 @@ export class RegisterService {
         password: hashed,
         nidNumber: data.nidNumber,
         address: data.address,
-        role: "TENANT",
+        boardId: data.boardId,
+        role: UserRole.USER,
       },
       select: {
         id: true,

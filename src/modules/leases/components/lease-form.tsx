@@ -20,7 +20,7 @@ interface LeaseFormProps {
 export function LeaseForm({ initialData, onSubmit, loading }: LeaseFormProps) {
   const { data: tenants } = useQuery({
     queryKey: ["tenants-for-lease"],
-    queryFn: async () => { const r = await axios.get("/api/users?role=TENANT&limit=100"); return r.data.data },
+    queryFn: async () => { const r = await axios.get("/api/users?role=USER&limit=100"); return r.data.data },
   })
 
   const { data: units } = useQuery({
@@ -36,9 +36,9 @@ export function LeaseForm({ initialData, onSubmit, loading }: LeaseFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label>Tenant</Label>
+        <Label>User (Tenant)</Label>
         <Select defaultValue={initialData?.tenantId} onValueChange={(v) => setValue("tenantId", v)}>
-          <SelectTrigger><SelectValue placeholder="Select tenant" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder="Select user" /></SelectTrigger>
           <SelectContent>
             {tenants?.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.fullName} ({t.phone})</SelectItem>))}
           </SelectContent>

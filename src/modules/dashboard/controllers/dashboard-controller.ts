@@ -10,8 +10,31 @@ export class DashboardController {
     if (!user) return errorResponse("Unauthorized", 401)
     const dbUser = await prisma.user.findUnique({ where: { id: user.userId }, select: { boardId: true, role: true } })
 
-    // Tenants see their personal dashboard (single lease/user data)
-    if (dbUser?.role === "TENANT") {
+    // Super Admin sees platform-level dashboard (all boards)
+    if (user.role === "SUPER_ADMIN") {
+      const [totalBoards, totalProperties, totalUnits, totalUsers, totalLeases] = await Promise.all([
+        prisma.board.count({ where: { deletedAt: null } }),
+        prisma.property.count({ where: { deletedAt: null } }),
+        prisma.unit.count({ where: { deletedAt: null } }),
+        prisma.user.count({ where: { deletedAt: null, role: "USER" } }),
+        prisma.lease.count({ where: { status: "ACTIVE", deletedAt: null } }),
+      ])
+
+      return successResponse({
+        totalProperties, totalUnits,
+        occupiedUnits: 0, vacantUnits: 0,
+        activeTenants: totalUsers,
+        activeLeases: totalLeases,
+        monthlyRevenue: 0, collectedRevenue: 0, outstandingRevenue: 0,
+        monthlyExpenses: 0, netProfit: 0,
+        trendData: [], propertyTypeData: [], unitStatusData: [],
+        collectionRate: 0, occupancyRate: 0,
+        totalBoards,
+      })
+    }
+
+    // Tenant/User sees their personal dashboard
+    if (dbUser?.role === "USER") {
       const lease = await prisma.lease.findFirst({
         where: { tenantId: user.userId, status: "ACTIVE", deletedAt: null },
       })
@@ -25,19 +48,14 @@ export class DashboardController {
         vacantUnits: 0,
         activeTenants: 1,
         activeLeases: lease ? 1 : 0,
-        monthlyRevenue: 0,
-        collectedRevenue: 0,
-        outstandingRevenue: 0,
-        monthlyExpenses: 0,
-        netProfit: 0,
-        trendData: [],
-        propertyTypeData: [],
-        unitStatusData: [],
-        collectionRate: 0,
-        occupancyRate: lease ? 100 : 0,
+        monthlyRevenue: 0, collectedRevenue: 0, outstandingRevenue: 0,
+        monthlyExpenses: 0, netProfit: 0,
+        trendData: [], propertyTypeData: [], unitStatusData: [],
+        collectionRate: 0, occupancyRate: lease ? 100 : 0,
       })
     }
 
+    // Board users (CEO, Manager, Finance Officer) see board-level dashboard
     if (!dbUser?.boardId) return errorResponse("No board assigned", 403)
     const stats = await DashboardService.getStats(dbUser.boardId)
     return successResponse(stats)

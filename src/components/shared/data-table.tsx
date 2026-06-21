@@ -41,14 +41,17 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([])
   const [searchInput, setSearchInput] = useState("")
   const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const onSearchRef = useRef(onSearchChange)
+  onSearchRef.current = onSearchChange
 
   useEffect(() => {
+    if (!debounceRef.current && !searchInput) return
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      onSearchChange?.(searchInput)
+      onSearchRef.current?.(searchInput)
     }, 400)
     return () => clearTimeout(debounceRef.current)
-  }, [searchInput, onSearchChange])
+  }, [searchInput])
 
   const table = useReactTable({
     data,
@@ -56,7 +59,10 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    state: { sorting },
+    state: {
+      sorting,
+      pagination: { pageIndex: meta ? meta.page - 1 : 0, pageSize: meta?.limit || 10 },
+    },
     manualPagination: true,
     pageCount: meta?.totalPages ?? -1,
   })

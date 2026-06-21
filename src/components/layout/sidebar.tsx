@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/utils/cn"
 import {
   LayoutDashboard, Building2, DoorOpen, Users, FileText,
-  Receipt, CreditCard, Wallet, Bell, ScrollText, Wrench, LogOut, X,
+  Receipt, CreditCard, Wallet, Bell, ScrollText, Wrench, LogOut, X, BarChart3,
 } from "lucide-react"
 import { useAuthStore } from "@/modules/auth/hooks/use-auth-store"
 
@@ -18,26 +18,20 @@ interface Route {
 const roleRoutes: Record<string, Route[]> = {
   SUPER_ADMIN: [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
-    { label: "Properties", href: "/properties", icon: Building2 },
-    { label: "Units", href: "/units", icon: DoorOpen },
-    { label: "Users & Tenants", href: "/users", icon: Users },
-    { label: "Leases", href: "/leases", icon: FileText },
-    { label: "Invoices", href: "/invoices", icon: Receipt },
-    { label: "Payments", href: "/payments", icon: CreditCard },
-    { label: "Expenses", href: "/expenses", icon: Wallet },
-    { label: "Maintenance", href: "/maintenance", icon: Wrench },
+    { label: "Boards", href: "/boards", icon: Building2 },
+    { label: "Users", href: "/users", icon: Users },
     { label: "Activity Logs", href: "/activity-logs", icon: ScrollText },
-    { label: "Notifications", href: "/notifications", icon: Bell },
   ],
   CEO: [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "Properties", href: "/properties", icon: Building2 },
     { label: "Units", href: "/units", icon: DoorOpen },
-    { label: "Users & Tenants", href: "/users", icon: Users },
+    { label: "Users", href: "/users", icon: Users },
     { label: "Leases", href: "/leases", icon: FileText },
     { label: "Invoices", href: "/invoices", icon: Receipt },
     { label: "Payments", href: "/payments", icon: CreditCard },
     { label: "Expenses", href: "/expenses", icon: Wallet },
+    { label: "Reports", href: "/reports", icon: BarChart3 },
     { label: "Maintenance", href: "/maintenance", icon: Wrench },
     { label: "Notifications", href: "/notifications", icon: Bell },
   ],
@@ -45,11 +39,12 @@ const roleRoutes: Record<string, Route[]> = {
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "Properties", href: "/properties", icon: Building2 },
     { label: "Units", href: "/units", icon: DoorOpen },
-    { label: "Users & Tenants", href: "/users", icon: Users },
+    { label: "Users", href: "/users", icon: Users },
     { label: "Leases", href: "/leases", icon: FileText },
     { label: "Invoices", href: "/invoices", icon: Receipt },
     { label: "Payments", href: "/payments", icon: CreditCard },
     { label: "Expenses", href: "/expenses", icon: Wallet },
+    { label: "Reports", href: "/reports", icon: BarChart3 },
     { label: "Maintenance", href: "/maintenance", icon: Wrench },
     { label: "Notifications", href: "/notifications", icon: Bell },
   ],
@@ -58,9 +53,10 @@ const roleRoutes: Record<string, Route[]> = {
     { label: "Invoices", href: "/invoices", icon: Receipt },
     { label: "Payments", href: "/payments", icon: CreditCard },
     { label: "Expenses", href: "/expenses", icon: Wallet },
+    { label: "Reports", href: "/reports", icon: BarChart3 },
     { label: "Notifications", href: "/notifications", icon: Bell },
   ],
-  TENANT: [
+  USER: [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "My Property", href: "/my-property", icon: Building2 },
     { label: "My Invoices", href: "/my-invoices", icon: Receipt },

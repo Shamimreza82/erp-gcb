@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, UserRole } from "@prisma/client"
 import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
@@ -25,7 +25,7 @@ async function main() {
       email: "admin@erp.com",
       password,
       fullName: "Super Admin",
-      role: "SUPER_ADMIN",
+      role: UserRole.SUPER_ADMIN,
     },
   })
 
@@ -37,7 +37,7 @@ async function main() {
       email: "ceo@gcb.gov.bd",
       password,
       fullName: "Chief Executive Officer",
-      role: "CEO",
+      role: UserRole.CEO,
     },
   })
 
@@ -49,7 +49,7 @@ async function main() {
       email: "manager@gcb.gov.bd",
       password,
       fullName: "Property Manager",
-      role: "MANAGER",
+      role: UserRole.MANAGER,
     },
   })
 
@@ -61,22 +61,22 @@ async function main() {
       email: "finance@gcb.gov.bd",
       password,
       fullName: "Finance Officer",
-      role: "FINANCE_OFFICER",
+      role: UserRole.FINANCE_OFFICER,
     },
   })
 
   const tenantUser = await prisma.user.upsert({
-    where: { email: "tenant@gcb.gov.bd" },
+    where: { email: "user@gcb.gov.bd" },
     update: {},
     create: {
       boardId: board.id,
-      email: "tenant@gcb.gov.bd",
+      email: "user@gcb.gov.bd",
       password,
       fullName: "Abdul Karim",
       phone: "01712345678",
       nidNumber: "1234567890",
       address: "Gazipur Sadar, Dhaka",
-      role: "TENANT",
+      role: UserRole.USER,
     },
   })
 
@@ -164,14 +164,47 @@ async function main() {
     }
   }
 
+  // ─── Second Board (demo multi-tenant) ───
+  const board2 = await prisma.board.upsert({
+    where: { code: "DCB" },
+    update: {},
+    create: {
+      name: "Dhaka Cantonment Board",
+      code: "DCB",
+      address: "Dhaka Cantonment, Dhaka, Bangladesh",
+    },
+  })
+
+  await prisma.user.upsert({
+    where: { email: "ceo@dcb.gov.bd" },
+    update: {},
+    create: { boardId: board2.id, email: "ceo@dcb.gov.bd", password, fullName: "DCB CEO", role: "CEO" },
+  })
+
+  await prisma.user.upsert({
+    where: { email: "manager@dcb.gov.bd" },
+    update: {},
+    create: { boardId: board2.id, email: "manager@dcb.gov.bd", password, fullName: "DCB Manager", role: "MANAGER" },
+  })
+
+  await prisma.property.create({
+    data: { boardId: board2.id, code: "MKT-001", name: "Kawran Bazar Market", category: "MARKET", address: "Kawran Bazar, Dhaka", status: "ACTIVE", createdBy: superAdmin.id },
+  })
+
   console.log("✅ Seed completed successfully")
   console.log("")
   console.log("── Login Credentials ──")
-  console.log("Super Admin:   admin@erp.com / 123456")
-  console.log("CEO:           ceo@gcb.gov.bd / 123456")
-  console.log("Manager:       manager@gcb.gov.bd / 123456")
-  console.log("Finance:       finance@gcb.gov.bd / 123456")
-  console.log("Tenant:        tenant@gcb.gov.bd / 123456")
+  console.log("Super Admin:     admin@erp.com / 123456")
+  console.log("")
+  console.log("── Board 1: Gazipur Cantonment Board (GCB) ──")
+  console.log("CEO:             ceo@gcb.gov.bd / 123456")
+  console.log("Manager:         manager@gcb.gov.bd / 123456")
+  console.log("Finance:         finance@gcb.gov.bd / 123456")
+  console.log("User:            user@gcb.gov.bd / 123456")
+  console.log("")
+  console.log("── Board 2: Dhaka Cantonment Board (DCB) ──")
+  console.log("CEO:             ceo@dcb.gov.bd / 123456")
+  console.log("Manager:         manager@dcb.gov.bd / 123456")
 }
 
 main()

@@ -12,7 +12,7 @@ enum UserRole {
   CEO
   MANAGER
   FINANCE_OFFICER
-  TENANT
+  USER
 }
 
 enum PropertyCategory {
@@ -101,7 +101,7 @@ model User {
   password   String
   fullName   String
   phone      String?
-  role       UserRole @default(TENANT)
+  role       UserRole @default(USER)
   nidNumber  String?
   address    String?
   isActive   Boolean  @default(true)

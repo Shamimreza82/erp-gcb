@@ -3,6 +3,7 @@ import { AuthService } from "../services/auth-service"
 import { loginSchema } from "../validations"
 import { successResponse, errorResponse } from "@/lib/api-response"
 import { getUserFromRequest } from "@/lib/auth"
+import { logActivity, logError } from "@/lib/activity-logger"
 
 export class AuthController {
   static async login(request: NextRequest) {
@@ -11,8 +12,11 @@ export class AuthController {
       const parsed = loginSchema.safeParse(body)
       if (!parsed.success) return errorResponse(parsed.error.errors[0].message)
       const result = await AuthService.login(parsed.data)
+      await logActivity({ userId: result.user.id, action: "LOGIN", entity: "auth", entityId: result.user.id, details: { email: result.user.email } })
       return successResponse(result)
     } catch (error) {
+      logError("auth", error)
+      console.error("[auth] Login error:", error)
       return errorResponse(error instanceof Error ? error.message : "Login failed", 401)
     }
   }

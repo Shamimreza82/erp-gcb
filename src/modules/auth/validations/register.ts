@@ -6,6 +6,7 @@ export const registerSchema = z.object({
   phone: z.string().min(8, "Invalid phone number"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  boardId: z.string().min(1, "Please select your Cantonment Board"),
   nidNumber: z.string().optional(),
   address: z.string().optional(),
 }).refine((d) => d.password === d.confirmPassword, {

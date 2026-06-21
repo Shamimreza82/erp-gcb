@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma"
 import type { PropertyFormData } from "../types"
 
 export class PropertyService {
-  static async findAll(params: { boardId: string; skip?: number; take?: number; search?: string }) {
-    const where: any = { boardId: params.boardId, deletedAt: null }
+  static async findAll(params: { boardId?: string; skip?: number; take?: number; search?: string }) {
+    const where: any = { deletedAt: null }
+    if (params.boardId) where.boardId = params.boardId
     if (params.search) {
       where.OR = [
         { code: { contains: params.search, mode: "insensitive" } },

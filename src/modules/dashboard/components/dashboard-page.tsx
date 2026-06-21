@@ -45,8 +45,8 @@ export function DashboardPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
+          {Array.from({ length: 7 }).map((_, i) => (
             <Card key={i}><CardContent className="p-6"><div className="h-20 animate-pulse rounded bg-muted" /></CardContent></Card>
           ))}
         </div>
@@ -55,11 +55,12 @@ export function DashboardPage() {
   }
 
   const statsCards = [
+    ...(data?.totalBoards !== undefined ? [{ title: "Total Boards", value: data.totalBoards, icon: Building2, color: chartColors.purple }] : []),
     { title: "Properties", value: data?.totalProperties || 0, icon: Building2, color: chartColors.green },
     { title: "Total Units", value: data?.totalUnits || 0, icon: DoorOpen, color: chartColors.blue },
     { title: "Occupied", value: data?.occupiedUnits || 0, icon: DoorOpen, color: chartColors.greenLight },
     { title: "Vacant", value: data?.vacantUnits || 0, icon: DoorOpen, color: chartColors.orange },
-    { title: "Active Tenants", value: data?.activeTenants || 0, icon: Users, color: chartColors.teal },
+    { title: "Active Users", value: data?.activeTenants || 0, icon: Users, color: chartColors.teal },
     { title: "Active Leases", value: data?.activeLeases || 0, icon: FileText, color: chartColors.purple },
   ]
 
@@ -68,7 +69,7 @@ export function DashboardPage() {
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
       {/* ── KPI Cards ── */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-7">
         {statsCards.map((card) => (
           <Card key={card.title}>
             <CardContent className="p-6">

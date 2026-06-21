@@ -70,7 +70,7 @@ export function LeaseList() {
 
   const columns: ColumnDef<Lease>[] = [
     { accessorKey: "leaseNumber", header: "Lease #" },
-    { accessorKey: "tenant", header: "Tenant", cell: ({ row }) => row.original.tenant?.fullName || "-" },
+    { accessorKey: "tenant", header: "User", cell: ({ row }) => row.original.tenant?.fullName || "-" },
     { accessorKey: "unit", header: "Unit", cell: ({ row }) => row.original.unit?.unitNumber || "-" },
     { accessorKey: "monthlyRent", header: "Rent", cell: ({ row }) => formatCurrency(row.getValue("monthlyRent")) },
     { accessorKey: "startDate", header: "Start", cell: ({ row }) => formatDate(row.getValue("startDate")) },

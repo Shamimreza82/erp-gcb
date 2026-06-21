@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma"
 import type { UnitFormData } from "../types"
 
 export class UnitService {
-  static async findAll(params: { boardId: string; skip?: number; take?: number; search?: string; propertyId?: string }) {
-    const where: any = { deletedAt: null, property: { boardId: params.boardId } }
+  static async findAll(params: { boardId?: string; skip?: number; take?: number; search?: string; propertyId?: string }) {
+    const where: any = { deletedAt: null }
+    if (params.boardId) where.property = { boardId: params.boardId }
     if (params.search) where.OR = [{ unitNumber: { contains: params.search, mode: "insensitive" } }]
     if (params.propertyId) where.propertyId = params.propertyId
     const [data, total] = await Promise.all([

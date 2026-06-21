@@ -33,7 +33,7 @@ export function LoginForm() {
     { label: "CEO", email: "ceo@gcb.gov.bd" },
     { label: "Manager", email: "manager@gcb.gov.bd" },
     { label: "Finance", email: "finance@gcb.gov.bd" },
-    { label: "Tenant", email: "tenant@gcb.gov.bd" },
+    { label: "User", email: "user@gcb.gov.bd" },
   ]
 
   const loginMutation = useMutation({

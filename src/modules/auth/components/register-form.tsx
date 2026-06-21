@@ -3,10 +3,11 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { registerSchema, type RegisterSchema } from "../validations/register"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, AlertCircle, Loader2, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
@@ -17,12 +18,12 @@ import { useState } from "react"
 export function RegisterForm() {
   const [done, setDone] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setError,
-  } = useForm<RegisterSchema>({
+  const { data: boards } = useQuery({
+    queryKey: ["public-boards"],
+    queryFn: async () => { const r = await axios.get("/api/boards/public"); return r.data.data },
+  })
+
+  const { register, handleSubmit, setValue, formState: { errors }, setError } = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
   })
 
@@ -31,15 +32,8 @@ export function RegisterForm() {
       const res = await axios.post("/api/auth/register", data)
       return res.data
     },
-    onSuccess: () => {
-      setDone(true)
-      toast.success("Registration successful")
-    },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error || "Registration failed"
-      setError("email", { message: msg })
-      toast.error(msg)
-    },
+    onSuccess: () => { setDone(true); toast.success("Registration successful") },
+    onError: (err: any) => { const msg = err.response?.data?.error || "Registration failed"; setError("email", { message: msg }); toast.error(msg) },
   })
 
   if (done) {
@@ -50,9 +44,7 @@ export function RegisterForm() {
             <CheckCircle className="h-16 w-16 text-primary" />
             <CardTitle className="text-2xl">Registration successful</CardTitle>
             <CardDescription>Your account has been created. Please login.</CardDescription>
-            <Button asChild className="mt-4">
-              <Link href="/login">Go to Login</Link>
-            </Button>
+            <Button asChild className="mt-4"><Link href="/login">Go to Login</Link></Button>
           </CardContent>
         </Card>
       </div>
@@ -69,7 +61,7 @@ export function RegisterForm() {
             </div>
           </div>
           <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>Register as a tenant to apply for property</CardDescription>
+          <CardDescription>Register under your Cantonment Board</CardDescription>
         </CardHeader>
 
         {mutation.isError && (
@@ -81,6 +73,24 @@ export function RegisterForm() {
 
         <form onSubmit={handleSubmit((data) => mutation.mutate(data))}>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Select Your Board</Label>
+              <Select onValueChange={(v) => setValue("boardId", v)}>
+                <SelectTrigger><SelectValue placeholder="Choose your Cantonment Board" /></SelectTrigger>
+                <SelectContent>
+                  {boards?.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      <span className="flex items-center gap-2">
+                        <Building2 className="h-3.5 w-3.5" />
+                        {b.name} ({b.code})
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.boardId && <p className="text-xs text-destructive">{errors.boardId.message}</p>}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <Input id="fullName" {...register("fullName")} placeholder="Your full name" />
@@ -127,17 +137,11 @@ export function RegisterForm() {
 
           <CardFooter className="flex-col gap-4">
             <Button type="submit" className="w-full" disabled={mutation.isPending}>
-              {mutation.isPending ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</>
-              ) : (
-                "Create Account"
-              )}
+              {mutation.isPending ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</>) : "Create Account"}
             </Button>
             <p className="text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
-                Sign in
-              </Link>
+              <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">Sign in</Link>
             </p>
           </CardFooter>
         </form>
