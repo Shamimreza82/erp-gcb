@@ -6,21 +6,19 @@ import { DataTable } from "@/components/shared/data-table"
 import { PageHeader } from "@/components/shared/page-header"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DeleteDialog } from "@/components/shared/delete-dialog"
-import { LeaseForm } from "./lease-form"
 import { Plus, Trash2, XCircle, CheckCircle, X } from "lucide-react"
 import { formatDate, formatCurrency } from "@/utils/format"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Lease, LeaseFormData } from "../types"
+import type { Lease } from "../types"
 import { toast } from "sonner"
 import { api as axios } from "@/lib/axios"
+import Link from "next/link"
 
 export function LeaseList() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
   const handleSearch = (v: string) => { setSearch(v); setPage(1) }
-  const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedLease, setSelectedLease] = useState<Lease | null>(null)
   const queryClient = useQueryClient()
@@ -28,12 +26,6 @@ export function LeaseList() {
   const { data, isLoading } = useQuery({
     queryKey: ["leases", page, search],
     queryFn: async () => { const r = await axios.get(`/api/leases?page=${page}&search=${search}`); return r.data },
-  })
-
-  const createMutation = useMutation({
-    mutationFn: async (formData: LeaseFormData) => { const r = await axios.post("/api/leases", formData); return r.data },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["leases"] }); queryClient.invalidateQueries({ queryKey: ["units"] }); setDialogOpen(false); toast.success("Lease created") },
-    onError: (err: any) => toast.error(err.response?.data?.error || "Failed to create"),
   })
 
   const approveMutation = useMutation({
@@ -94,7 +86,7 @@ export function LeaseList() {
           {row.original.status === "ACTIVE" && (
             <Button variant="ghost" size="icon" onClick={() => terminateMutation.mutate(row.original.id)} title="Terminate"><XCircle className="h-4 w-4" /></Button>
           )}
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedLease(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100" onClick={() => { setSelectedLease(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },
@@ -103,13 +95,7 @@ export function LeaseList() {
   return (
     <div>
       <PageHeader title="Leases" description="Lease agreement management">
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setSelectedLease(null) }}>
-          <DialogTrigger asChild><Button><Plus className="h-4 w-4" /> Create Lease</Button></DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader><DialogTitle>Create Lease</DialogTitle></DialogHeader>
-            <LeaseForm onSubmit={(fd) => createMutation.mutateAsync(fd)} loading={createMutation.isPending} />
-          </DialogContent>
-        </Dialog>
+        <Button asChild><Link href="/leases/new"><Plus className="h-4 w-4" /> Create Lease</Link></Button>
       </PageHeader>
       <DataTable columns={columns} data={data?.data || []} meta={data?.meta} onPageChange={setPage} onSearchChange={handleSearch} loading={isLoading} />
       <DeleteDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={() => selectedLease && deleteMutation.mutate(selectedLease.id)} loading={deleteMutation.isPending} />

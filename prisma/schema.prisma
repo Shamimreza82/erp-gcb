@@ -198,7 +198,7 @@ model Lease {
   tenantId        String      @db.Uuid
   unitId          String      @db.Uuid
   startDate       DateTime
-  endDate         DateTime
+  endDate         DateTime?
   monthlyRent     Float
   securityDeposit Float       @default(0)
   status          LeaseStatus @default(PENDING_CEO_APPROVAL)

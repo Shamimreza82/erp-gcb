@@ -34,6 +34,7 @@ export function PropertyDetail({ id }: { id: string }) {
             <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span>{data.name}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Category</span><span>{data.category}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Address</span><span>{data.address || "-"}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Description</span><span>{data.description || "-"}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span>{data.status}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Created</span><span>{formatDate(data.createdAt)}</span></div>
           </CardContent>

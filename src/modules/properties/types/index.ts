@@ -1,5 +1,5 @@
 export interface PropertyFormData {
-  code: string
+  code?: string
   name: string
   category: "SHOP" | "LAND" | "HOUSE" | "FLAT" | "MARKET" | "WAREHOUSE" | "OTHER"
   address?: string

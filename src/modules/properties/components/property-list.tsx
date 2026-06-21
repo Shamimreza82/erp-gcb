@@ -95,8 +95,8 @@ export function PropertyList() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild><Link href={`/properties/${row.original.id}`}><DoorOpen className="h-4 w-4" /></Link></Button>
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedProperty(row.original); setDialogOpen(true) }}><Pencil className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedProperty(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="text-amber-600 hover:text-amber-700 hover:bg-amber-100" onClick={() => { setSelectedProperty(row.original); setDialogOpen(true) }}><Pencil className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100" onClick={() => { setSelectedProperty(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },
@@ -110,7 +110,7 @@ export function PropertyList() {
           <DialogContent>
             <DialogHeader><DialogTitle>{selectedProperty ? "Edit Property" : "Add Property"}</DialogTitle></DialogHeader>
             <PropertyForm
-              initialData={selectedProperty ? { code: selectedProperty.code, name: selectedProperty.name, category: selectedProperty.category, address: selectedProperty.address, description: selectedProperty.description, status: selectedProperty.status } : undefined}
+              initialData={selectedProperty ? { name: selectedProperty.name, category: selectedProperty.category, address: selectedProperty.address, description: selectedProperty.description, status: selectedProperty.status } : undefined}
               onSubmit={(fd) => selectedProperty ? updateMutation.mutateAsync({ id: selectedProperty.id, data: fd }) : createMutation.mutateAsync(fd)}
               loading={createMutation.isPending || updateMutation.isPending}
             />

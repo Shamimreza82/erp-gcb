@@ -85,7 +85,7 @@ export function BoardList() {
           <Button variant="ghost" size="icon" asChild>
             <Link href={`/boards/${row.original.id}`}><Eye className="h-4 w-4" /></Link>
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedBoard(row.original); setDeleteDialogOpen(true) }}>
+          <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100" onClick={() => { setSelectedBoard(row.original); setDeleteDialogOpen(true) }}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

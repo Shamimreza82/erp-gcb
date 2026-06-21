@@ -43,20 +43,19 @@ export class LeaseService {
     const count = await prisma.lease.count({ where: { deletedAt: null } })
     const leaseNumber = `LSE-${String(count + 1).padStart(4, "0")}`
 
-    return prisma.lease.create({
-      data: {
-        leaseNumber,
-        tenantId: data.tenantId,
-        unitId: data.unitId,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
-        monthlyRent: data.monthlyRent,
-        securityDeposit: data.securityDeposit,
-        notes: data.notes,
-        status: "PENDING_CEO_APPROVAL",
-        createdBy: userId,
-      },
-    })
+    const createData: any = {
+      leaseNumber,
+      tenantId: data.tenantId,
+      unitId: data.unitId,
+      startDate: new Date(data.startDate),
+      monthlyRent: data.monthlyRent,
+      securityDeposit: data.securityDeposit,
+      notes: data.notes,
+      status: "PENDING_CEO_APPROVAL",
+      createdBy: userId,
+    }
+    if (data.endDate) createData.endDate = new Date(data.endDate)
+    return prisma.lease.create({ data: createData })
   }
 
   static async approve(id: string, userId: string) {

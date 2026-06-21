@@ -1,6 +1,24 @@
 import { prisma } from "@/lib/prisma"
 import type { PropertyFormData } from "../types"
 
+function generateCode(): string {
+  const rand = String(Math.floor(1000 + Math.random() * 9000))
+  const now = new Date()
+  const mm = String(now.getMonth() + 1).padStart(2, "0")
+  const yy = String(now.getFullYear()).slice(-2)
+  return `${rand}${mm}${yy}`
+}
+
+async function generateUniqueCode(boardId: string): Promise<string> {
+  let code: string
+  let exists: boolean
+  do {
+    code = generateCode()
+    exists = !!(await prisma.property.findUnique({ where: { boardId_code: { boardId, code } } }))
+  } while (exists)
+  return code
+}
+
 export class PropertyService {
   static async findAll(params: { boardId?: string; skip?: number; take?: number; search?: string }) {
     const where: any = { deletedAt: null }
@@ -35,11 +53,13 @@ export class PropertyService {
   }
 
   static async create(data: PropertyFormData & { boardId: string }, userId: string) {
-    return prisma.property.create({ data: { ...data, createdBy: userId } })
+    const code = await generateUniqueCode(data.boardId)
+    return prisma.property.create({ data: { ...data, code, createdBy: userId } })
   }
 
   static async update(id: string, data: PropertyFormData, userId: string) {
-    return prisma.property.update({ where: { id }, data: { ...data, updatedBy: userId } })
+    const { code, ...rest } = data
+    return prisma.property.update({ where: { id }, data: { ...rest, updatedBy: userId } })
   }
 
   static async delete(id: string) {

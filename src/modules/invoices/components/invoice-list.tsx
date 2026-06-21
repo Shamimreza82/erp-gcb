@@ -98,7 +98,7 @@ export function InvoiceList() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild><a href={`/payments?invoiceId=${row.original.id}`}><CreditCard className="h-4 w-4" /></a></Button>
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedInvoice(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100" onClick={() => { setSelectedInvoice(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },

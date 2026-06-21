@@ -2,7 +2,7 @@ export interface LeaseFormData {
   tenantId: string
   unitId: string
   startDate: string
-  endDate: string
+  endDate?: string
   monthlyRent: number
   securityDeposit: number
   notes?: string

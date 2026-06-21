@@ -57,8 +57,8 @@ export function ExpenseList() {
       id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedExpense(row.original); setDialogOpen(true) }}><Pencil className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" onClick={() => { setSelectedExpense(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="text-amber-600 hover:text-amber-700 hover:bg-amber-100" onClick={() => { setSelectedExpense(row.original); setDialogOpen(true) }}><Pencil className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700 hover:bg-red-100" onClick={() => { setSelectedExpense(row.original); setDeleteDialogOpen(true) }}><Trash2 className="h-4 w-4" /></Button>
         </div>
       ),
     },
