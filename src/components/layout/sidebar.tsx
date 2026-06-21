@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/utils/cn"
 import {
   LayoutDashboard, Building2, DoorOpen, Users, FileText,
-  Receipt, CreditCard, Wallet, Bell, ScrollText, Wrench, LogOut, X, BarChart3,
+  Receipt, CreditCard, Wallet, Bell, ScrollText, Wrench, LogOut, X, BarChart3, Settings,
 } from "lucide-react"
 import { useAuthStore } from "@/modules/auth/hooks/use-auth-store"
+import { getDashboardPath } from "@/lib/role"
 
 interface Route {
   label: string
@@ -32,6 +33,7 @@ const roleRoutes: Record<string, Route[]> = {
     { label: "Payments", href: "/payments", icon: CreditCard },
     { label: "Expenses", href: "/expenses", icon: Wallet },
     { label: "Reports", href: "/reports", icon: BarChart3 },
+    { label: "Settings", href: "/settings", icon: Settings },
     { label: "Maintenance", href: "/maintenance", icon: Wrench },
     { label: "Notifications", href: "/notifications", icon: Bell },
   ],
@@ -45,6 +47,7 @@ const roleRoutes: Record<string, Route[]> = {
     { label: "Payments", href: "/payments", icon: CreditCard },
     { label: "Expenses", href: "/expenses", icon: Wallet },
     { label: "Reports", href: "/reports", icon: BarChart3 },
+    { label: "Settings", href: "/settings", icon: Settings },
     { label: "Maintenance", href: "/maintenance", icon: Wrench },
     { label: "Notifications", href: "/notifications", icon: Bell },
   ],
@@ -77,12 +80,16 @@ export function Sidebar({
 }) {
   const pathname = usePathname()
   const { user, logout } = useAuthStore()
-  const routes = roleRoutes[user?.role || ""] || []
+  const baseRoutes = roleRoutes[user?.role || ""] || []
+  const routes = baseRoutes.map((r) => ({
+    ...r,
+    href: r.label === "Dashboard" ? getDashboardPath(user?.role) : r.href,
+  }))
 
   const content = (
     <div className="flex h-full flex-col">
       <div className={cn("flex h-14 items-center border-b", collapsed ? "justify-center px-2" : "px-6")}>
-        <Link href="/" className={cn("flex items-center gap-2 font-semibold tracking-tight", collapsed && "justify-center")}>
+        <Link href={getDashboardPath(user?.role)} className={cn("flex items-center gap-2 font-semibold tracking-tight", collapsed && "justify-center")}>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary">
             <Building2 className="h-4 w-4 text-primary-foreground" />
           </div>

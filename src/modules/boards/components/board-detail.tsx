@@ -32,7 +32,11 @@ export function BoardDetail({ id }: { id: string }) {
         <Button variant="ghost" size="icon" asChild>
           <Link href="/boards"><ArrowLeft className="h-4 w-4" /></Link>
         </Button>
-        <Building2 className="h-6 w-6 text-primary" />
+        {data.logo ? (
+          <img src={data.logo} alt={`${data.name} logo`} className="h-10 w-10 rounded object-contain" />
+        ) : (
+          <Building2 className="h-6 w-6 text-primary" />
+        )}
         <div>
           <h1 className="text-2xl font-bold">{data.name}</h1>
           <p className="text-sm text-muted-foreground">{data.code}</p>

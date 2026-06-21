@@ -6,22 +6,23 @@ import { Sidebar } from "./sidebar"
 import { Topbar } from "./topbar"
 
 const pageTitles: Record<string, string> = {
-  "/": "Dashboard",
-  "/properties": "Properties",
-  "/units": "Units",
-  "/users": "Users",
-  "/leases": "Leases",
-  "/invoices": "Invoices",
-  "/payments": "Payments",
-  "/expenses": "Expenses",
-  "/maintenance": "Maintenance",
-  "/boards": "Boards",
-  "/reports": "Reports",
-  "/activity-logs": "Activity Logs",
-  "/notifications": "Notifications",
-  "/my-property": "My Property",
-  "/my-invoices": "My Invoices",
-  "/my-payments": "My Payments",
+  "dashboard": "Dashboard",
+  "properties": "Properties",
+  "units": "Units",
+  "users": "Users",
+  "leases": "Leases",
+  "invoices": "Invoices",
+  "payments": "Payments",
+  "expenses": "Expenses",
+  "maintenance": "Maintenance",
+  "boards": "Boards",
+  "reports": "Reports",
+  "settings": "Settings",
+  "activity-logs": "Activity Logs",
+  "notifications": "Notifications",
+  "my-property": "My Property",
+  "my-invoices": "My Invoices",
+  "my-payments": "My Payments",
 }
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -41,9 +42,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setMobileSidebarOpen(false)
   }, [])
 
-  const topbarTitle = Object.entries(pageTitles).find(
-    ([path]) => pathname === path
-  )?.[1] || "Dashboard"
+  const segments = pathname.split("/").filter(Boolean)
+  const currentPage = segments.length >= 2 ? segments[1] : segments[0] || "dashboard"
+  const topbarTitle = pageTitles[currentPage] || "Dashboard"
 
   return (
     <div className="flex h-screen overflow-hidden">

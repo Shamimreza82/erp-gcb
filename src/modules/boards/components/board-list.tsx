@@ -48,7 +48,11 @@ export function BoardList() {
       header: "Board",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Building2 className="h-4 w-4 text-muted-foreground" />
+          {row.original.logo ? (
+            <img src={row.original.logo} alt="" className="h-6 w-6 rounded object-contain" />
+          ) : (
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          )}
           <Link href={`/boards/${row.original.id}`} className="font-medium hover:underline">
             {row.original.name}
           </Link>

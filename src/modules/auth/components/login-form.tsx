@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, AlertCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { getDashboardPath } from "@/lib/role"
 import { toast } from "sonner"
 import { api as axios } from "@/lib/axios"
 
@@ -49,7 +50,7 @@ export function LoginForm() {
           version: 0,
         }))
         toast.success("Login successful")
-        setTimeout(() => { window.location.href = "/" }, 100)
+        setTimeout(() => { window.location.href = getDashboardPath(res.data.user.role) }, 100)
       }
     },
     onError: (err: any) => {
