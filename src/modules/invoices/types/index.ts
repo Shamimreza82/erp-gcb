@@ -1,8 +1,15 @@
+export interface ChargeDetail {
+  name: string
+  amount: number
+}
+
 export interface InvoiceFormData {
   leaseId: string
   rentAmount: number
   utilityCharges?: number
   serviceCharges?: number
+  otherCharges?: number
+  chargeDetails?: ChargeDetail[]
   dueDate: string
   notes?: string
   lateFee?: number

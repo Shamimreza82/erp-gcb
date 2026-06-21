@@ -42,15 +42,17 @@ export class InvoiceService {
   static async create(data: InvoiceFormData & { tenantId: string }, userId: string) {
     const count = await prisma.invoice.count()
     const invoiceNumber = `INV-${String(count + 1).padStart(5, "0")}`
-    const totalAmount = data.rentAmount + (data.utilityCharges || 0) + (data.serviceCharges || 0) + (data.lateFee || 0)
-    return prisma.invoice.create({
-      data: {
-        invoiceNumber, tenantId: data.tenantId, leaseId: data.leaseId,
-        rentAmount: data.rentAmount, utilityCharges: data.utilityCharges || 0,
-        serviceCharges: data.serviceCharges || 0, lateFee: data.lateFee || 0,
-        totalAmount, dueDate: new Date(data.dueDate), notes: data.notes, createdBy: userId,
-      },
-    })
+    const otherCharges = data.otherCharges || 0
+    const totalAmount = data.rentAmount + (data.utilityCharges || 0) + (data.serviceCharges || 0) + otherCharges + (data.lateFee || 0)
+    const createPayload: any = {
+      invoiceNumber, tenantId: data.tenantId, leaseId: data.leaseId,
+      rentAmount: data.rentAmount, utilityCharges: data.utilityCharges || 0,
+      serviceCharges: data.serviceCharges || 0, otherCharges,
+      chargeDetails: data.chargeDetails || undefined,
+      lateFee: data.lateFee || 0,
+      totalAmount, dueDate: new Date(data.dueDate), notes: data.notes, createdBy: userId,
+    }
+    return prisma.invoice.create({ data: createPayload })
   }
 
   static async generateBatch(boardId: string, month: string, userId: string) {
@@ -61,8 +63,22 @@ export class InvoiceService {
 
     const activeLeases = await prisma.lease.findMany({
       where: { status: "ACTIVE", deletedAt: null, unit: { property: { boardId } } },
-      include: { tenant: { select: { id: true } } },
+      include: { tenant: { select: { id: true } }, unit: { select: { propertyId: true } } },
     })
+
+    const propertyIds = [...new Set(activeLeases.map(l => l.unit.propertyId))]
+    const feesByProperty: Record<string, any[]> = {}
+    if (propertyIds.length > 0) {
+      const allFees = await prisma.propertyFee.findMany({
+        where: { propertyId: { in: propertyIds }, isActive: true, deletedAt: null },
+      })
+      for (const fee of allFees) {
+        if (!feesByProperty[fee.propertyId]) feesByProperty[fee.propertyId] = []
+        feesByProperty[fee.propertyId].push(fee)
+      }
+    }
+
+    const monthKey = String(monthNum).padStart(2, "0")
 
     let created = 0
     let skipped = 0
@@ -77,17 +93,24 @@ export class InvoiceService {
       })
       if (existing) { skipped++; continue }
 
+      const fees = feesByProperty[lease.unit.propertyId] || []
+      const chargeDetails = fees.map((f: any) => ({
+        name: f.name,
+        amount: f.yearlyOverrides?.[yearStr] ?? f.amount,
+      }))
+      const otherCharges = chargeDetails.reduce((sum: number, f: any) => sum + f.amount, 0)
+
       const count = await prisma.invoice.count()
       const invoiceNumber = `INV-${String(count + 1).padStart(5, "0")}`
 
-      await prisma.invoice.create({
-        data: {
-          invoiceNumber, tenantId: lease.tenantId, leaseId: lease.id,
-          rentAmount: lease.monthlyRent, utilityCharges: 0, serviceCharges: 0,
-          lateFee: 0, totalAmount: lease.monthlyRent,
-          dueDate, createdBy: userId,
-        },
-      })
+      const createPayload: any = {
+        invoiceNumber, tenantId: lease.tenantId, leaseId: lease.id,
+        rentAmount: lease.monthlyRent, utilityCharges: 0, serviceCharges: 0,
+        otherCharges, chargeDetails,
+        lateFee: 0, totalAmount: lease.monthlyRent + otherCharges,
+        dueDate, createdBy: userId,
+      }
+      await prisma.invoice.create({ data: createPayload })
       created++
     }
 
@@ -113,7 +136,7 @@ export class InvoiceService {
           where: { id: inv.id },
           data: {
             lateFee: fee,
-            totalAmount: inv.rentAmount + inv.utilityCharges + inv.serviceCharges + fee,
+            totalAmount: inv.rentAmount + inv.utilityCharges + inv.serviceCharges + inv.otherCharges + fee,
             status: "OVERDUE",
           },
         })

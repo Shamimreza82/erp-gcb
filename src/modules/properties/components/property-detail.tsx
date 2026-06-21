@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { formatDate, formatCurrency } from "@/utils/format"
-import { DoorOpen, ArrowLeft } from "lucide-react"
+import { DoorOpen, ArrowLeft, Receipt } from "lucide-react"
 import Link from "next/link"
 
 export function PropertyDetail({ id }: { id: string }) {
@@ -61,6 +61,11 @@ export function PropertyDetail({ id }: { id: string }) {
             )}
           </CardContent>
         </Card>
+      </div>
+      <div className="flex justify-end">
+        <Button variant="outline" asChild>
+          <Link href={`/properties/${id}/fees`}><Receipt className="h-4 w-4" /> Manage Service Charges</Link>
+        </Button>
       </div>
     </div>
   )

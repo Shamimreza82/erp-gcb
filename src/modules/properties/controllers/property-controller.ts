@@ -25,9 +25,14 @@ export class PropertyController {
   }
 
   static async getById(request: NextRequest, { params }: { params: { id: string } }) {
-    const property = await PropertyService.findById(params.id)
-    if (!property) return notFoundResponse("Property")
-    return successResponse(property)
+    try {
+      const property = await PropertyService.findById(params.id)
+      if (!property) return notFoundResponse("Property")
+      return successResponse(property)
+    } catch (error) {
+      logError("property", error)
+      return errorResponse(error instanceof Error ? error.message : "Failed to fetch property")
+    }
   }
 
   static async create(request: NextRequest) {

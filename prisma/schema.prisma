@@ -158,12 +158,31 @@ model Property {
   board         Board  @relation(fields: [boardId], references: [id])
   createdByUser User?  @relation("PropertyCreatedBy", fields: [createdBy], references: [id])
   units         Unit[]
+  fees          PropertyFee[]
 
   @@unique([boardId, code])
   @@index([status])
   @@index([category])
   @@index([deletedAt])
   @@map("properties")
+}
+
+model PropertyFee {
+  id              String   @id @default(uuid()) @db.Uuid
+  propertyId      String   @db.Uuid
+  name            String
+  amount          Float    // default monthly rate
+  yearlyOverrides Json?    // {"2026": 500, "2027": 550} — monthly rate per year
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  property Property @relation(fields: [propertyId], references: [id])
+
+  @@index([propertyId])
+  @@index([deletedAt])
+  @@map("property_fees")
 }
 
 model Unit {
@@ -232,11 +251,13 @@ model Invoice {
   rentAmount     Float
   utilityCharges Float         @default(0)
   serviceCharges Float         @default(0)
+  otherCharges   Float         @default(0)
   totalAmount    Float
   dueDate        DateTime
   status         InvoiceStatus @default(UNPAID)
   paidAmount     Float         @default(0)
   lateFee        Float         @default(0)
+  chargeDetails  Json?
   notes          String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
